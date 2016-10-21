@@ -36,6 +36,8 @@
 (defvar mouse-slider-scale 1500
   "Rate at which numbers scale. Smaller means faster.")
 
+(defvar mouse-slider-vertical nil "when true changes value according to y axis")
+
 (defvar mouse-slider-mode-eval-funcs
   `((emacs-lisp-mode . ,(apply-partially #'eval-defun nil)))
   "Alist of evaluation functions to run after scaling numbers in
@@ -99,14 +101,15 @@ number where the mouse drag began."
     (goto-char (posn-point (cl-second event)))
     (let ((base (thing-at-point 'number)))
       (when base
-        (cl-flet ((x (event) (car (posn-x-y (cl-second event)))))
+        (cl-flet ((xy (event) (let ((pos (posn-x-y (cl-second event))))
+                                (if mouse-slider-vertical (* -1 (cdr pos)) (car pos)))))
           (track-mouse
             (cl-loop for movement = (read-event)
                      while (mouse-movement-p movement)
                      ;; left means decrease, right means increase
-                     for diff = (- (x movement) (x event))
+                     for diff = (+ (xy movement) (* -1 (xy event)))
                      for value = (mouse-slider-scale base diff)
-                     when (not (zerop (x movement)))
+                     when (not (zerop (xy movement)))
                      do (mouse-slider-replace-number
                          (if (integerp base)
                              ;; integers remain integers
