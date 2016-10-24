@@ -36,7 +36,12 @@
 (defvar mouse-slider-scale 1500
   "Rate at which numbers scale. Smaller means faster.")
 
+<<<<<<< HEAD
 (defvar mouse-slider-vertical nil "when true changes value according to y axis")
+=======
+(defvar mouse-slider-direction :horizontal
+  "Selects either :horizontal or :vertical for action direction.")
+>>>>>>> b3c19cd231edecce76787c5a9bbe5e4046d91f88
 
 (defvar mouse-slider-mode-eval-funcs
   `((emacs-lisp-mode . ,(apply-partially #'eval-defun nil)))
@@ -102,7 +107,9 @@ number where the mouse drag began."
     (let ((base (thing-at-point 'number)))
       (when base
         (cl-flet ((xy (event) (let ((pos (posn-x-y (cl-second event))))
-                                (if mouse-slider-vertical (* -1 (cdr pos)) (car pos)))))
+                                (cl-ecase mouse-slider-direction
+                                  (:horizontal (car pos))
+                                  (:vertical   (* -1 (cdr pos)))))))
           (track-mouse
             (cl-loop for movement = (read-event)
                      while (mouse-movement-p movement)
